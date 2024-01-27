@@ -2,32 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+.form-container {
+  border-radius: 0.75rem;
+  padding: 2rem;
+  color: #f3f4f6;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+.title {
+  text-align: center;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+.form {
+  margin-top: 1.5rem;
 }
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
+.input-group {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.input-group label {
+  display: block;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.input-group input {
+  width: 100%;
+  border-radius: 0.375rem;
+  outline: 0;
+  padding: 0.75rem 1rem;
+}
+
+.signup a {
+  color: #f3f4f6;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.sign {
+  display: block;
+  width: 100%;
+  padding: 0.75rem;
+  text-align: center;
+  border: none;
+  border-radius: 0.375rem;
+  font-weight: 600;
+}
+
+.signup {
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: rgba(156, 163, 175, 1);
 }
