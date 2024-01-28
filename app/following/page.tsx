@@ -28,7 +28,11 @@ export default function Page() {
   const [users, setUsers] = useState<User[] | null>(null);
   const [searchResults, setSearchResult] = useState<User[] | null>(null);
   const [message, setMessage] = useState<null | string>(null);
-  const id = localStorage.getItem("id");
+  const [loading, setLoading] = useState(false);
+  let id: string | null;
+  if (typeof window !== "undefined") {
+    id = localStorage.getItem("id");
+  }
 
   useEffect(() => {
     (async () => {
@@ -55,6 +59,8 @@ export default function Page() {
   async function updateFollowing() {
     const token = localStorage.getItem("token");
     const bearer = `Bearer ${token}`;
+    setLoading(true);
+
     try {
       let res = await fetch("https://snapsphere-api.adaptable.app/user", {
         method: "GET",
@@ -65,6 +71,7 @@ export default function Page() {
       if (res.ok) {
         let resData = await res.json();
         setFollowing(resData.user.following);
+        setLoading(false);
       }
     } catch (err) {
       console.log(err);
@@ -188,6 +195,7 @@ export default function Page() {
             searchUsers={searchUsers}
             searchResults={searchResults}
             removeFollowing={removeFollowing}
+            loading={loading}
           />
         </div>
       </main>

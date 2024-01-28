@@ -38,7 +38,7 @@ export default function Nav() {
           <div>Home</div>
         </Link>
         <Link
-          href="/friends"
+          href="/following"
           className="flex items-center gap-1 hover:bg-gray-950 px-5 py-3 rounded-md active:bg-gray-950 focus:bg-gray-950"
         >
           <svg
@@ -164,7 +164,7 @@ export default function Nav() {
                   </Menu.Item>
                   <Menu.Item>
                     <Link
-                      href="/friends"
+                      href="/following"
                       className="flex items-center gap-1 hover:bg-gray-950 px-5 py-3 rounded-md active:bg-gray-950 focus:bg-gray-950"
                     >
                       <svg

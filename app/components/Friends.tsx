@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import { MouseEvent } from "react";
 
@@ -28,12 +27,14 @@ export default function Friends({
   searchUsers,
   searchResults,
   removeFollowing,
+  loading,
 }: {
   following: following[] | null;
   addFollowing: (e: MouseEvent<HTMLButtonElement>, v: string) => void;
   searchUsers: (e: MouseEvent<HTMLButtonElement>, v: string) => void;
   searchResults: User[] | null;
   removeFollowing: (e: MouseEvent<HTMLButtonElement>, v: string) => void;
+  loading: boolean;
 }) {
   const [searchInput, setSearchInput] = useState("");
   return (
@@ -61,11 +62,9 @@ export default function Friends({
           <div className="bg-gray-100 p-4 text-gray-900 flex flex-col gap-2 rounded-md w-full">
             {searchResults?.map((user) => (
               <div key={user._id} className="flex items-center gap-2 h-10">
-                <Image
+                <img
                   src={user.profilePicture}
                   alt={""}
-                  width={100}
-                  height={100}
                   className="rounded-full h-full w-auto"
                 />
                 <div>{user.username}</div>
@@ -82,17 +81,21 @@ export default function Friends({
           ""
         )}
         <div className="font-semibold text-2xl my-4">Following</div>
-        {following?.length === 0 ? (
+        {loading ? (
+          <div className="loader mt-10">
+            <div className="scanner-white">
+              <span>Loading...</span>
+            </div>
+          </div>
+        ) : following?.length === 0 ? (
           <div className="mt-4">You are not following anyone</div>
         ) : (
           <div className="flex flex-col gap-3 w-full">
             {following?.map((user) => (
               <div key={user._id} className="flex items-center gap-2 h-10">
-                <Image
+                <img
                   src={user.profilePicture}
                   alt={""}
-                  width={100}
-                  height={100}
                   className="rounded-full h-full w-auto"
                 />
 
