@@ -27,6 +27,8 @@ export default function Page() {
   const [following, setFollowing] = useState<following[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
   const [searchResults, setSearchResult] = useState<User[] | null>(null);
+  const [message, setMessage] = useState<null | string>(null);
+  const id = localStorage.getItem("id");
 
   useEffect(() => {
     (async () => {
@@ -74,6 +76,10 @@ export default function Page() {
     userId: string
   ) {
     e.preventDefault();
+    if (id === "65b3417da2429ca4c8635731") {
+      showMessage("Test user cannot perform this action");
+      return;
+    }
     const token = localStorage.getItem("token");
     const bearer = `Bearer ${token}`;
     const data = {
@@ -105,6 +111,10 @@ export default function Page() {
     userId: string
   ) {
     e.preventDefault();
+    if (id === "65b3417da2429ca4c8635731") {
+      showMessage("Test user cannot perform this action");
+      return;
+    }
     const token = localStorage.getItem("token");
     const bearer = `Bearer ${token}`;
     const data = {
@@ -153,9 +163,23 @@ export default function Page() {
   useEffect(() => {
     updateFollowing();
   }, []);
+
+  const showMessage = (text: string) => {
+    setMessage(text);
+
+    setTimeout(() => {
+      setMessage(null);
+    }, 3000);
+  };
+
   return (
     <>
       <main className="bg-gray-900 flex min-h-screen flex-col items-center">
+        {message && (
+          <div className="fixed left-1/2 top-20 z-10 -translate-x-1/2 transform rounded bg-violet-400 px-4 py-2 text-white font-semibold">
+            {message}
+          </div>
+        )}
         <Nav />
         <div className="sm:w-8/12 lg:w-6/12 xl:w-4/12">
           <Friends

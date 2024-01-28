@@ -38,7 +38,8 @@ interface Post {
 export default function Comments({ id }: { id: string | string[] }) {
   const [post, setPost] = useState<Post | null>(null);
   const [comment, setComment] = useState("");
-  const [likedComments, setLikedComments] = useState<string[]>([]);
+  const [userLiked, setUserLiked] = useState<boolean[]>([]);
+  const userId = localStorage.getItem("id");
 
   async function updatePost() {
     try {
@@ -51,7 +52,6 @@ export default function Comments({ id }: { id: string | string[] }) {
         },
       });
       let resData = await res.json();
-      console.log(resData);
       setPost(resData.posts);
     } catch (err) {
       console.log(err);
@@ -87,7 +87,16 @@ export default function Comments({ id }: { id: string | string[] }) {
     }
   }
 
-  async function likeThisComment(commentId: string) {
+  useEffect(() => {
+    if (post) {
+      const initialUserLikedState = post.comments.map((comment) =>
+        comment.likes.includes(userId as string)
+      );
+      setUserLiked(initialUserLikedState);
+    }
+  }, [post, userId]);
+
+  async function likeThisComment(commentId: string, commentIndex: number) {
     const token = localStorage.getItem("token");
     const bearer = `Bearer ${token}`;
 
@@ -103,11 +112,33 @@ export default function Comments({ id }: { id: string | string[] }) {
         }
       );
       if (res.ok) {
-        await updatePost();
-        const updatedLikedComments = likedComments.includes(commentId)
-          ? likedComments.filter((id) => id !== commentId)
-          : [...likedComments, commentId];
-        setLikedComments(updatedLikedComments);
+        let resData = await res.json();
+        setPost((prevPost) => {
+          if (!prevPost) {
+            return null;
+          }
+
+          const updatedPost: Post = {
+            ...prevPost,
+            comments: prevPost.comments.map((comment, index) => {
+              if (index === commentIndex) {
+                return {
+                  ...comment,
+                  likes: resData.likes,
+                };
+              }
+              return comment;
+            }),
+          };
+
+          return updatedPost;
+        });
+
+        setUserLiked((prevUserLiked) => {
+          const updatedUserLiked = [...prevUserLiked];
+          updatedUserLiked[commentIndex] = !updatedUserLiked[commentIndex];
+          return updatedUserLiked;
+        });
       }
     } catch (err) {
       console.error(err);
@@ -126,6 +157,7 @@ export default function Comments({ id }: { id: string | string[] }) {
                   height={100}
                   width={100}
                   alt={""}
+                  className="h-full w-auto rounded-full"
                 />
               ) : (
                 <svg
@@ -159,13 +191,14 @@ export default function Comments({ id }: { id: string | string[] }) {
             )}
             {post.text && <div>{post.text}</div>}
           </div>
-          <div className="w-11/12 flex border-x border-b border-x-gray-700 border-b-gray-700 px-6 py-4 gap-3 items-center">
+          <div className="w-11/12 flex border-x border-b border-x-gray-700 border-b-gray-700 px-2 md:px-6 md:py-4 gap-3 items-center h-16">
             {post.userId.profilePicture ? (
               <Image
                 src={post.userId.profilePicture}
                 height={100}
                 width={100}
                 alt={""}
+                className="h-full w-auto rounded-full hidden md:block"
               />
             ) : (
               <svg
@@ -178,7 +211,7 @@ export default function Comments({ id }: { id: string | string[] }) {
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="h-full w-auto"
+                className="h-full w-auto hidden md:block"
               >
                 <path d="M18 20a6 6 0 0 0-12 0" />
                 <circle cx="12" cy="10" r="4" />
@@ -202,18 +235,19 @@ export default function Comments({ id }: { id: string | string[] }) {
           <div className="w-11/12">
             {post &&
               post.comments.length > 0 &&
-              post.comments.map((comment) => (
+              post.comments.map((comment, index) => (
                 <div
                   key={comment._id}
                   className="flex flex-col w-full gap-3 border-x border-b border-x-gray-700 border-b-gray-700 px-6 py-4"
                 >
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-2 items-center h-8">
                     {comment.userId.profilePicture !== "" ? (
                       <Image
                         src={comment.userId.profilePicture}
                         width={100}
                         height={100}
                         alt={""}
+                        className="h-full w-auto rounded-full"
                       />
                     ) : (
                       <svg
@@ -238,26 +272,41 @@ export default function Comments({ id }: { id: string | string[] }) {
                   </div>
                   <div className="flex gap-3">
                     <div className="grow">{comment.comment}</div>
-                    <div className="flex gap-1 items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className={`lucide lucide-heart cursor-pointer ${
-                          likedComments.includes(comment._id)
-                            ? "stroke-rose-700 fill-rose-700"
-                            : ""
-                        }`}
-                        onClick={() => likeThisComment(comment._id)}
-                      >
-                        <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                      </svg>
+                    <div
+                      className="flex gap-1 items-center"
+                      onClick={() => likeThisComment(comment._id, index)}
+                    >
+                      {userLiked[index] ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-heart stroke-rose-700 fill-rose-700 cursor-pointer"
+                        >
+                          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="lucide lucide-heart cursor-pointer"
+                        >
+                          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                        </svg>
+                      )}
                       <div>{comment.likes.length}</div>
                     </div>
                   </div>
