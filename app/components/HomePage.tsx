@@ -272,7 +272,7 @@ export default function HomePage() {
                     className="h-full w-auto rounded-md"
                   />
                 )}
-                {post.text && <div>{post.text}</div>}
+                {post.text && <div className="break-words">{post.text}</div>}
                 <div className="flex gap-3">
                   <div
                     className="flex gap-1 items-center"
