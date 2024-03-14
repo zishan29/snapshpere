@@ -38,7 +38,7 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center bg-gray-900 text-white">
       <Nav />
-      <div className="sm:w-8/12 lg:w-6/12 xl:w-4/12 flex flex-col items-center h-full grow gap-0">
+      <div className="w-full md:w-8/12 lg:w-6/12 xl:w-4/12 flex flex-col items-center h-full grow gap-0">
         <HomePage />
       </div>
     </main>

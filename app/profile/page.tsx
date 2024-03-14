@@ -237,11 +237,11 @@ export default function Page() {
           </div>
         ) : (
           <>
-            <div className="sm:w-8/12 lg:w-6/12 xl:w-4/12 flex flex-col items-center h-full grow gap-0">
+            <div className="w-full md:w-8/12 lg:w-6/12 xl:w-4/12 flex flex-col items-center h-full grow gap-0">
               {user !== null && (
                 <>
-                  <div className="flex flex-col items-center gap-2 w-11/12 shadow-lg rounded-md p-4">
-                    <div className="flex flex items-center gap-2 w-full">
+                  <div className="flex flex-col items-center gap-2 mx-2 md:mx-0 shadow-lg rounded-md p-4">
+                    <div className="flex items-center gap-2 w-full">
                       {user.profilePicture !== "" ? (
                         <div className="relative w-3/12">
                           {user.profilePicture &&
@@ -470,7 +470,6 @@ export default function Page() {
                         </div>
                       </div>
                     </div>
-
                     <button
                       className="bg-violet-400 hover:bg-violet-300 active:bg-violet-500 px-3 py-1 rounded-md outline-none focus:outline-violet-400 text-white font-semibold"
                       onClick={updateProfile}
@@ -478,11 +477,11 @@ export default function Page() {
                       Save
                     </button>
                   </div>
-                  <div className="flex flex-col items-center">
+                  <div className="flex flex-col items-center w-full px-2 md:px-0">
                     <div className="my-4 font-semibold text-xl">
                       Posts made by you
                     </div>
-                    <div className=" w-11/12 h-max border-t border-t-gray-700 mb-10">
+                    <div className="w-full h-max border-t border-t-gray-700 mb-10">
                       {posts &&
                         posts.length > 0 &&
                         posts.map((post, index) => (
