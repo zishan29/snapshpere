@@ -4,41 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import Nav from "../components/Nav";
 import { useRouter } from "next/navigation";
 import { MouseEvent } from "react";
-
-interface User {
-  _id: string;
-  username: string;
-  email?: string;
-  password?: string;
-  followers?: User[];
-  following?: User[];
-  profilePicture: string;
-  updatedAt?: string;
-  createdAt?: string;
-}
-
-interface Comment {
-  _id: string;
-  userId: User;
-  postId: String;
-  likes: string[];
-  comment: string;
-}
-
-interface Post {
-  comments: Comment[];
-  createdAt: string;
-  updatedAt: string;
-  imageUrl?: string;
-  text?: string;
-  likes: string[];
-  userId: User;
-  _id: string;
-}
+import { Post, User } from "../types";
+import userService from "@/app/services/userService";
+import { useAppSelector, useAppDispatch } from "../lib/hooks";
+import { likes, initializePostsByUser } from "../lib/features/posts/postSlice";
 
 export default function Page() {
   const [user, setUser] = useState<User | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const posts = useAppSelector((state) => state.posts.posts);
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [editedEmail, setEditedEmail] = useState("");
@@ -50,6 +23,7 @@ export default function Page() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [message, setMessage] = useState<null | string>(null);
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
 
   let userId: string | null;
   if (typeof window !== "undefined") {
@@ -73,39 +47,17 @@ export default function Page() {
   };
 
   async function updateUser() {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    const bearer = `Bearer ${token}`;
     try {
-      let [userRes, postRes] = await Promise.all([
-        fetch("https://snapsphere-api.adaptable.app/user", {
-          method: "GET",
-          headers: {
-            Authorization: bearer,
-          },
-        }),
-        fetch(`https://snapsphere-api.adaptable.app/posts/${userId}`, {
-          method: "GET",
-          headers: {
-            Authorization: bearer,
-          },
-        }),
-      ]);
-      if (userRes.ok) {
-        let userResData = await userRes.json();
-        console.log(userResData);
-        setUser(userResData.user);
-        setEditedUsername(userResData.user.username as string);
-        setEditedEmail(userResData.user.email as string);
-      }
-      if (postRes.ok) {
-        let postResData = await postRes.json();
-        console.log(postResData);
-        setPosts(postResData.posts);
-      }
-      setLoading(false);
+      setLoading(true);
+      const userData = await userService.getUser();
+      setUser(userData.user);
+      setEditedUsername(userData.user.username as string);
+      setEditedEmail(userData.user.email as string);
+      dispatch(initializePostsByUser(userId as string));
     } catch (err) {
       console.log(err);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -121,43 +73,17 @@ export default function Page() {
   }, [posts]);
 
   function handleCommentClick(post: Post) {
-    router.push(`${post._id}/comments`);
+    router.push(`${post.id}/comments`);
   }
 
   async function likeThisPost(postId: string, index: number) {
-    const token = localStorage.getItem("token");
-    const bearer = `Bearer ${token}`;
-
     try {
-      let res = await fetch(
-        `https://snapsphere-api.adaptable.app/posts/${postId}/likes`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: bearer,
-          },
-        }
-      );
-      if (res.ok) {
-        let resData = await res.json();
-        setPosts((prevPosts) => {
-          const updatedPosts = [...prevPosts];
-
-          updatedPosts[index] = {
-            ...updatedPosts[index],
-            likes: resData.likes,
-          };
-
-          return updatedPosts;
-        });
-
-        setUserLiked((prevUserLiked) => {
-          const updatedUserLiked = [...prevUserLiked];
-          updatedUserLiked[index] = !updatedUserLiked[index];
-          return updatedUserLiked;
-        });
-      }
+      dispatch(likes(postId, userId as string));
+      setUserLiked((prevUserLiked) => {
+        const updatedUserLiked = [...prevUserLiked];
+        updatedUserLiked[index] = !updatedUserLiked[index];
+        return updatedUserLiked;
+      });
     } catch (err) {
       console.error(err);
     }
@@ -486,7 +412,7 @@ export default function Page() {
                         posts.length > 0 &&
                         posts.map((post, index) => (
                           <div
-                            key={post._id}
+                            key={post.id}
                             className="px-6 py-4 flex flex-col gap-3 border-x border-b border-x-gray-700 border-b-gray-700"
                           >
                             <div className="flex gap-2 items-center h-8">
@@ -534,7 +460,7 @@ export default function Page() {
                             <div className="flex gap-3">
                               <div
                                 className="flex gap-1 items-center"
-                                onClick={() => likeThisPost(post._id, index)}
+                                onClick={() => likeThisPost(post.id, index)}
                               >
                                 {userLiked[index] ? (
                                   <svg

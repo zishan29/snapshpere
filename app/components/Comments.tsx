@@ -2,37 +2,7 @@
 
 import { MouseEvent } from "react";
 import { useState, useEffect } from "react";
-
-interface User {
-  _id: string;
-  username: string;
-  email?: string;
-  password?: string;
-  followers?: User[];
-  following?: User[];
-  profilePicture: string;
-  updatedAt?: string;
-  createdAt?: string;
-}
-
-interface Comment {
-  _id: string;
-  userId: User;
-  postId: String;
-  likes: string[];
-  comment: string;
-}
-
-interface Post {
-  comments: Comment[];
-  createdAt: string;
-  updatedAt: string;
-  imageUrl?: string;
-  text?: string;
-  likes: string[];
-  userId: User;
-  _id: string;
-}
+import { Post } from "../types";
 
 export default function Comments({ id }: { id: string | string[] }) {
   const [post, setPost] = useState<Post | null>(null);
@@ -267,7 +237,7 @@ export default function Comments({ id }: { id: string | string[] }) {
                   post.comments.length > 0 &&
                   post.comments.map((comment, index) => (
                     <div
-                      key={comment._id}
+                      key={comment.id}
                       className="flex flex-col w-full gap-3 border-x border-b border-x-gray-700 border-b-gray-700 px-6 py-4"
                     >
                       <div className="flex gap-2 items-center h-8">
@@ -302,7 +272,7 @@ export default function Comments({ id }: { id: string | string[] }) {
                         <div className="grow">{comment.comment}</div>
                         <div
                           className="flex gap-1 items-center"
-                          onClick={() => likeThisComment(comment._id, index)}
+                          onClick={() => likeThisComment(comment.id, index)}
                         >
                           {userLiked[index] ? (
                             <svg

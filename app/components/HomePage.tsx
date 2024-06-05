@@ -2,47 +2,24 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-
-interface User {
-  _id: string;
-  username: string;
-  email?: string;
-  password?: string;
-  followers?: User[];
-  following?: User[];
-  profilePicture: string;
-  updatedAt?: string;
-  createdAt?: string;
-}
-
-interface Comment {
-  _id: string;
-  userId: User;
-  postId: String;
-  likes: string[];
-  comment: string;
-}
-
-interface Post {
-  comments: Comment[];
-  createdAt: string;
-  updatedAt: string;
-  imageUrl?: string;
-  text?: string;
-  likes: string[];
-  userId: User;
-  _id: string;
-}
+import { useAppSelector, useAppDispatch } from "../lib/hooks";
+import { Post } from "../types";
+import {
+  initializePosts,
+  likes,
+  updatePosts,
+} from "../lib/features/posts/postSlice";
 
 export default function HomePage() {
   const [image, setImage] = useState<File | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const posts = useAppSelector((state) => state.posts.posts);
   const [text, setText] = useState("");
   const router = useRouter();
   const [userLiked, setUserLiked] = useState<boolean[]>([]);
   const [loading, setLoading] = useState(false);
+  const dispatch = useAppDispatch();
   let userId: string | null;
   if (typeof window !== "undefined") {
     userId = localStorage.getItem("id");
@@ -60,38 +37,11 @@ export default function HomePage() {
     }
   };
 
-  async function updatePost() {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    const bearer = `Bearer ${token}`;
-    try {
-      let res = await fetch("https://snapsphere-api.adaptable.app/posts", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: bearer,
-        },
-      });
-      if (res.ok) {
-        let resData = await res.json();
-        setPosts(resData.posts);
-        setText("");
-        setImage(null);
-        setImagePreview(null);
-        setLoading(false);
-      }
-    } catch (err) {
-      console.log(err);
-    }
-  }
-
   useEffect(() => {
-    updatePost();
+    dispatch(initializePosts());
   }, []);
 
   async function uploadPost() {
-    const token = localStorage.getItem("token");
-    const bearer = `Bearer ${token}`;
     const formData = new FormData();
     if (text !== "") {
       formData.append("text", text);
@@ -99,22 +49,10 @@ export default function HomePage() {
     if (image !== null) {
       formData.append("image", image);
     }
-    try {
-      let res = await fetch("https://snapsphere-api.adaptable.app/posts", {
-        method: "POST",
-        headers: {
-          Authorization: bearer,
-        },
-        body: formData,
-      });
-      if (res.ok) {
-        let resData = await res.json();
-        console.log(resData);
-        updatePost();
-      }
-    } catch (err) {
-      console.log(err);
-    }
+    dispatch(updatePosts(formData));
+    setText("");
+    setImage(null);
+    setImagePreview(null);
   }
 
   useEffect(() => {
@@ -125,43 +63,17 @@ export default function HomePage() {
   }, [posts]);
 
   function handleCommentClick(post: Post) {
-    router.push(`${post._id}/comments`);
+    router.push(`${post.id}/comments`);
   }
 
   async function likeThisPost(postId: string, index: number) {
-    const token = localStorage.getItem("token");
-    const bearer = `Bearer ${token}`;
-
     try {
-      let res = await fetch(
-        `https://snapsphere-api.adaptable.app/posts/${postId}/likes`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: bearer,
-          },
-        }
-      );
-      if (res.ok) {
-        let resData = await res.json();
-        setPosts((prevPosts) => {
-          const updatedPosts = [...prevPosts];
-
-          updatedPosts[index] = {
-            ...updatedPosts[index],
-            likes: resData.likes,
-          };
-
-          return updatedPosts;
-        });
-
-        setUserLiked((prevUserLiked) => {
-          const updatedUserLiked = [...prevUserLiked];
-          updatedUserLiked[index] = !updatedUserLiked[index];
-          return updatedUserLiked;
-        });
-      }
+      dispatch(likes(postId, userId as string));
+      setUserLiked((prevUserLiked) => {
+        const updatedUserLiked = [...prevUserLiked];
+        updatedUserLiked[index] = !updatedUserLiked[index];
+        return updatedUserLiked;
+      });
     } catch (err) {
       console.error(err);
     }
@@ -183,6 +95,7 @@ export default function HomePage() {
           placeholder="What is happening?!"
           onChange={(e) => setText(e.target.value)}
           value={text}
+          required
         />
         <div className="flex items-center">
           <button
@@ -234,7 +147,7 @@ export default function HomePage() {
           {posts.length > 0 &&
             posts.map((post, index) => (
               <div
-                key={post._id}
+                key={post.id}
                 className="px-6 py-4 flex flex-col gap-3 border-x border-b border-x-gray-700 border-b-gray-700"
               >
                 <div className="flex gap-2 items-center h-8">
@@ -276,7 +189,7 @@ export default function HomePage() {
                 <div className="flex gap-3">
                   <div
                     className="flex gap-1 items-center"
-                    onClick={() => likeThisPost(post._id, index)}
+                    onClick={() => likeThisPost(post.id, index)}
                   >
                     {userLiked[index] ? (
                       <svg
