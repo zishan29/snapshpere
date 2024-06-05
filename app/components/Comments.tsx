@@ -88,8 +88,8 @@ export default function Comments({ id }: { id: string | string[] }) {
 
   useEffect(() => {
     if (post) {
-      const initialUserLikedState = post.comments.map((comment) =>
-        comment.likes.includes(userId as string)
+      const initialUserLikedState = post.comments.map(
+        (comment) => comment.likes?.includes(userId!) ?? false
       );
       setUserLiked(initialUserLikedState);
     }

@@ -15,7 +15,7 @@ export interface User extends BaseUser {
 export interface Comment {
   userId: BaseUser;
   comment: string;
-  likes: string[] | [];
+  likes: string[];
   postId: string;
   createdAt: string;
   updatedAt: string;
