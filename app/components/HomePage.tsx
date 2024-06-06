@@ -38,8 +38,17 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    dispatch(initializePosts());
-  }, []);
+    const fetchPosts = async () => {
+      setLoading(true);
+      try {
+        await dispatch(initializePosts());
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [dispatch]);
 
   async function uploadPost() {
     const formData = new FormData();

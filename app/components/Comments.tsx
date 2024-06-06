@@ -27,7 +27,6 @@ export default function Comments({ id }: { id: string | string[] }) {
       });
       if (res.ok) {
         let resData = await res.json();
-        console.log(resData);
         setUserProfile(resData.user.profilePicture);
       }
     } catch (err) {
@@ -36,7 +35,6 @@ export default function Comments({ id }: { id: string | string[] }) {
   }
 
   async function updatePost() {
-    setLoading(true);
     const token = localStorage.getItem("token");
     const bearer = `Bearer ${token}`;
     try {
@@ -49,7 +47,6 @@ export default function Comments({ id }: { id: string | string[] }) {
       if (res.ok) {
         let resData = await res.json();
         setPost(resData.posts);
-        setLoading(false);
       }
     } catch (err) {
       console.log(err);
@@ -57,8 +54,16 @@ export default function Comments({ id }: { id: string | string[] }) {
   }
 
   useEffect(() => {
-    updatePost();
-    getUserProfile();
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        await updatePost();
+        await getUserProfile();
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
   async function postComment(e: MouseEvent<HTMLButtonElement>) {

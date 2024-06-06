@@ -56,3 +56,7 @@ export interface UserResponse {
 }
 
 export interface PostResponse extends PostState {}
+
+export interface SinglePostResponse {
+  post: Post;
+}
